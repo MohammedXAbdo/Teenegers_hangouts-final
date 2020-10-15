@@ -26,6 +26,7 @@ void main() => runApp(MultiProvider(
 
   ],
   child: MaterialApp(
+    debugShowCheckedModeBanner: false,
     home: Phoenix(child: Splash_Screen()),
     routes: {
       introSlider.introid:(context)=>introSlider(),

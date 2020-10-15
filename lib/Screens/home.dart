@@ -21,6 +21,7 @@ import 'package:googlemaps/Screens/addQuestions.dart';
 import 'package:googlemaps/Widgets/home_user_pointes.dart';
 import 'package:googlemaps/constants.dart';
 import 'package:googlemaps/custom_icons/custom_icons.dart';
+import 'package:like_button/like_button.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:provider/provider.dart';
 import 'package:googlemaps/servecies/store.dart';
@@ -173,6 +174,8 @@ class _homeState extends State<home> {
     int collectedpointes = Provider.of<UserProvider>(context).Scores;
 
     Store store = Store();
+    final _auth = FirebaseAuth.instance;
+    bool isliked = false;
    // List<MarkerComments> markercomments = [];
     String urlLoad =
         'https://firebasestorage.googleapis.com/v0/b/double-zenith-280321.appspot.com/o/images%2Fheader%20bg.png?alt=media&token=2a399258-a53e-4ceb-99e8-0e151e9c05fa';
@@ -298,60 +301,97 @@ class _homeState extends State<home> {
                                                                    0.07,
                                                                color: constants
                                                                    .primarycolor,
-                                                               child: Center(
-                                                                 child: Padding(
-                                                                   padding: const EdgeInsets
-                                                                       .symmetric(
-                                                                       horizontal:
-                                                                       10,
-                                                                       vertical:
-                                                                       10),
-                                                                   child:
-                                                                   AutoSizeText(
-                                                                     data["${constants
-                                                                         .placeName}"] ==
-                                                                         null
-                                                                         ? ""
-                                                                         : data[
-                                                                     "${constants
-                                                                         .placeName}"],
-                                                                     style: TextStyle(
-                                                                         fontFamily:
-                                                                         'font',
-                                                                         color: constants
-                                                                             .whitecolor),
-                                                                     textAlign:
-                                                                     TextAlign
-                                                                         .center,
-                                                                     softWrap:
-                                                                     true,
-                                                                     wrapWords:
-                                                                     true,
+                                                               child: Row(
+                                                                 children: [
+                                                                   Builder(
+                                                                   builder: (context)=>
+                                                         (
+                                                         AvatarGlow(
+                                                         endRadius: 35,
+                                                         child: LikeButton(
+                                                           onTap: (bool isLiked) async {
+                                                             final FirebaseUser user = await _auth.currentUser();
+                                                             final uid = user.uid;
+                                                             print(uid);
+                                                             await store.updateFavouriteHeart(uid,doc
+                                                                 .documentID
+                                                                 .toString(),
+                                                                 !isLiked,data[
+                                                                 "${constants
+                                                                     .placeName}"],data[
+                                                                 constants
+                                                                     .Location]) ;
+
+                                                             /// send your request here
+                                                             // final bool success= await sendRequest();
+
+                                                             /// if failed, you can do nothing
+                                                             // return success? !isLiked:isLiked;
+//
+////                                                                              print(snapshot.data.documents[0][constants.IsFavourite]);
+//    print (islike);
+                                                             print(!isLiked);
+                                                             Scaffold.of(context).showSnackBar(SnackBar(content: Text("Place Added To Favourite",style: TextStyle(fontFamily: 'font'),)));
+                                                             return !isLiked;
+
+                                                           },
+                                                           isLiked: isliked,
+                                                           circleColor: CircleColor(
+                                                               start: Color(0xff00ddff), end: Color(0xff0099cc)),
+                                                           bubblesColor: BubblesColor(
+                                                             dotPrimaryColor: Color(0xff33b5e5),
+                                                             dotSecondaryColor: Color(0xff0099cc),
+                                                           ),
+                                                         ),
+                                                       )),
+                                                 ),
+                                                                   Center(
+                                                                     child: Padding(
+                                                                       padding: const EdgeInsets
+                                                                           .symmetric(
+                                                                           horizontal:
+                                                                           10,
+                                                                           vertical:
+                                                                           10),
+                                                                       child:
+                                                                       Container(
+                                                                         width: width*0.7,
+                                                                         child: AutoSizeText(
+                                                                           data["${constants
+                                                                               .placeName}"] ==
+                                                                               null
+                                                                               ? ""
+                                                                               : data[
+                                                                           "${constants
+                                                                               .placeName}"],
+                                                                           style: TextStyle(
+                                                                               fontFamily:
+                                                                               'font',
+                                                                               color: constants
+                                                                                   .whitecolor),
+                                                                           textAlign:
+                                                                           TextAlign
+                                                                               .center,
+                                                                           softWrap:
+                                                                           true,
+                                                                           wrapWords:
+                                                                           true,
+                                                                           maxLines: 1,
+                                                                           minFontSize: 4,
+                                                                         ),
+                                                                       ),
+                                                                     ),
                                                                    ),
-                                                                 ),
+                                                                 ],
                                                                ),
                                                              ),
-                                                             LocationStack(
-                                                               height: height,
-                                                               width: width,
-                                                               placImage: data[constants.PlaceImage],
-                                                               urlLoad: urlLoad,
-                                                               docId: doc
-                                                                   .documentID
-                                                                   .toString(),
-                                                               store: store,
-                                                               placeName: data[
-                                                               "${constants
-                                                                   .placeName}"],
-                                                               location: data[
-                                                               constants
-                                                                   .Location],
-                                                             ),
+
                                                              Container(
                                                                height:
-                                                               height * 0.15,
+                                                               height * 0.24,
                                                                width: width,
                                                                child: GoogleMap(
+                                                                 myLocationButtonEnabled: false,
                                                                  mapType: MapType
                                                                      .normal,
                                                                  markers:
@@ -796,7 +836,7 @@ class _homeState extends State<home> {
                                     width: MediaQuery.of(context).size.width,
                                     height: MediaQuery.of(context).size.height,
                                     child: GoogleMap(
-
+                                  myLocationButtonEnabled: false,
                                       mapType: MapType.normal,
                                       markers: markers,
                                       onMapCreated: _OnMapCreated,
@@ -872,70 +912,85 @@ class _homeState extends State<home> {
                               ],
                             ),
                            Positioned(
-                                bottom: height * 0.09,
-                                left: width * 0.03,
-                                child: Row(
-                                  children: <Widget>[
-                                     IgnorePointer(
-                                        ignoring: clickable == null
-                                            ? true
-                                            : clickable, //userprovider.addplace,
-                                        child: Opacity(
-                                          opacity:
-                                              counter == null ? 0 : counter==5?1:0,
-                                          child: AvatarGlow(
-                                            glowColor: Colors.black,
-                                            endRadius: 49,
-                                            child: FloatingActionButton(
-                                              heroTag: 'btn1',
-                                              backgroundColor:
-                                                  constants.primarycolor,
-                                              child: Center(
-                                                child: Padding(
-                                                  padding: const EdgeInsets
-                                                      .symmetric(horizontal: 4),
-                                                  child: Container(
-                                                    child: AutoSizeText(
-                                                      "  Add    place",
-                                                      softWrap: true,
-                                                      maxLines: 2,
+                             bottom: height * 0.09,
+
+                                child: Container(
+                                  width: width,
+                                  child: Row(
+                                    children: <Widget>[
+                                       Positioned(
+                                         bottom: height * 0.09,
+                                         left: width * 0.03,
+                                         child: IgnorePointer(
+                                            ignoring: clickable == null
+                                                ? true
+                                                : clickable, //userprovider.addplace,
+                                            child: Opacity(
+                                              opacity:
+                                                    counter == null ? 0 : counter==5?1:0,
+                                              child: AvatarGlow(
+                                                glowColor: Colors.black,
+                                                endRadius: 49,
+                                                child: FloatingActionButton(
+                                                  heroTag: 'btn1',
+                                                  backgroundColor:
+                                                      constants.primarycolor,
+                                                  child: Center(
+                                                    child: Padding(
+                                                      padding: const EdgeInsets
+                                                          .symmetric(horizontal: 4),
+                                                      child: Container(
+                                                        child: AutoSizeText(
+                                                          "  Add    place",
+                                                          softWrap: true,
+                                                          maxLines: 2,
+                                                        ),
+                                                      ),
                                                     ),
                                                   ),
+                                                  onPressed: () {
+                                                    Navigator.pushNamed(
+                                                        context, addflag.id);
+                                                  },
+                                                  elevation: 2,
+                                                  tooltip: "Add Place",
                                                 ),
                                               ),
-                                              onPressed: () {
-                                                Navigator.pushNamed(
-                                                    context, addflag.id);
-                                              },
-                                              elevation: 2,
-                                              tooltip: "Add Place",
                                             ),
                                           ),
-                                        ),
-                                      ),
+                                       ),
 
-                                    IgnorePointer(
-                                      ignoring: true,
-                                      child: Opacity(
-                                        opacity: counter == null ? 1 : counter==5?0:1,
-                                        child: AvatarGlow(
-                                          animate: userprovider.addplace == false
-                                              ? true
-                                              : false,
-                                          endRadius: 90,
-                                          glowColor: Colors.black,
-                                          child: FloatingActionButton.extended(
-                                            heroTag: 'btn2',
-                                            label: Text("Rank pin Places"),
-                                            backgroundColor: Colors.black26,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
+                            Positioned(
+                              bottom: height * 0.09,
+                              right: width*0.3,
+                              left: width*0.3,
+                              child: Center(
 
+                                child: IgnorePointer(
+                                  ignoring: true,
+                                  child: Opacity(
+                                    opacity: counter == null ? 1 : counter==5?0:1,
+                                    child: AvatarGlow(
+                                      animate: userprovider.addplace == false
+                                          ? true
+                                          : false,
+                                      endRadius: 90,
+                                      glowColor: Colors.black,
+                                      child: FloatingActionButton.extended(
+
+                                        heroTag: 'btn2',
+                                        label: Text("Rank pin Places"),
+                                        backgroundColor: Colors.black26,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
                           ],
                         )
                       : currentindex == 1 ? favorite() : profile(),

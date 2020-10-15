@@ -74,6 +74,8 @@ class home_user_pointes extends StatelessWidget {
                                                       ? "User Name"
                                                       : snapshot.data
                                                       .documents[0][constants
+                                                      .username]==null?"User Name": snapshot.data
+                                                      .documents[0][constants
                                                       .username],
                                                   style: TextStyle(
                                                       fontFamily: 'font',

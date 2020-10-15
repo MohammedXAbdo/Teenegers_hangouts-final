@@ -52,41 +52,9 @@ class _LocationStackState extends State<LocationStack> {
         Container(
           height: widget.height * 0.25,
           width: widget.width,
-          child: FadeInImage(
-            image: NetworkImage(widget.placImage == null
-                ? widget.urlLoad
-                : widget.placImage),
+          child: Image.asset(
+          'images/markercover.png',
             fit: BoxFit.cover,
-            placeholder: AssetImage('images/markercover.png'),
-          ),
-        ),
-        Positioned(
-          right: widget.width * 0.01,
-          bottom: widget.height * 0.01,
-          child: FloatingActionButton(
-            onPressed: () {
-              showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                        content: pickImageDialog(
-                            widget.width, widget.height, widget.docId),
-                        title: Text('Choose Cover to this Place'),
-                        actions: <Widget>[
-                          FlatButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              child: Text('Ok'))
-                        ],
-                      ));
-            },
-            child: Center(
-              child: Icon(
-                Icons.camera_enhance,
-                color: Colors.white,
-              ),
-            ),
-            backgroundColor: constants.primarycolor,
           ),
         ),
         Positioned(

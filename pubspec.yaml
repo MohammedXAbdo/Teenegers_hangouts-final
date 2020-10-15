@@ -25,7 +25,7 @@ dependencies:
   cupertino_icons: ^0.1.2
   google_maps_flutter: ^0.5.28+1
   device_preview: ^0.4.5
-  flutter_svg: ^0.17.0
+  flutter_svg: ^0.18.0
   cloud_firestore: ^0.13.7
   firebase_auth: ^0.16.1
   provider: ^4.0.0
@@ -35,8 +35,8 @@ dependencies:
   flutter_google_places: ^0.2.5
   reviews_slider: ^1.0.5
   auto_size_text: ^2.1.0
-  flutter_login_facebook: ^0.2.1
   step_progress_indicator: ^0.2.3+6
+  sign_in_with_apple: ^2.5.2
   flutter_phoenix: ^0.1.0
   avatar_glow: ^1.2.0
   percent_indicator: ^2.1.5

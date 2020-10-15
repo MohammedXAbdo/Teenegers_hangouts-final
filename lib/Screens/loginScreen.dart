@@ -1,7 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_login_facebook/flutter_login_facebook.dart';
-import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googlemaps/Provider/UserProvider.dart';
 import 'package:googlemaps/Screens/home.dart';
@@ -20,6 +18,7 @@ import 'package:googlemaps/servecies/auth.dart';
 import 'package:googlemaps/servecies/store.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 import 'package:provider/provider.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 class loginScreen extends StatefulWidget {
   static String id = 'login';
@@ -38,7 +37,6 @@ class _loginScreenState extends State<loginScreen> {
 
   final GlobalKey<FormState> _globalKey = GlobalKey<FormState>();
 
-  FacebookLogin facebookLogin = FacebookLogin();
   Future<FirebaseUser> getUser() async {
     return await auth1.currentUser();
   }
@@ -188,119 +186,94 @@ class _loginScreenState extends State<loginScreen> {
                               textcolor: constants.blackcolor,
                               fontWeight: FontWeight.normal,
                             )),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 20),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: <Widget>[
-                              GestureDetector(
-                                onTap:() async {
-                                  Store store = Store();
-                                  UserProvider userprovider = Provider.of<UserProvider>(context,listen: false);
-                                  FacebookLoginResult facebookLoginResult = await facebookLogin.logIn();
+                        SizedBox(height: height*0.04,),
+                    SignInWithAppleButton(
 
-                                  final FacebookAccessToken accessToken = facebookLoginResult.accessToken;
+                      onPressed: ()async{
+                        Store store = Store();
+                        UserProvider userprovider = Provider.of<UserProvider>(context,listen: false);
+                        final appleIdCredential = await SignInWithApple.getAppleIDCredential(
+                          scopes: [
+                            AppleIDAuthorizationScopes.email,
+                            AppleIDAuthorizationScopes.fullName,
+                          ],
+                        );
+                        final oAuthProvider = OAuthProvider(providerId: 'apple.com');
+                        final credential = oAuthProvider.getCredential(
+                          idToken: appleIdCredential.identityToken,
+                          accessToken: appleIdCredential.authorizationCode,
+                        );
+                        FirebaseUser user;
 
-                                  AuthCredential authCredential = FacebookAuthProvider.getCredential(accessToken: accessToken.token);
-
-                                  FirebaseUser user;
-                                  try{
-                                    user = (await auth1.signInWithCredential(authCredential)).user;
-                                    userprovider.getaccesstoken(accessToken.token);
-
-                                    final DocumentSnapshot doc =
-                                    await Firestore.instance.collection(constants.usercollection).document(user.uid).get();
-                                    if(!doc.exists) {
-                                      store.adduserfacebook(User(
-                                          user.displayName, null, user.uid),
-                                          user.uid);
-                                    }
-
-                                    Navigator.pushNamed(context, waitngWidget.id);
-                                  }catch(e){
-                                    print(e.toString());
-                                  }finally{
-                                    if(user != null){
-                                      print(user.displayName);
-                                      print("https://graph.facebook.com/v2.12/me?fields=picture.height(200)&access_token=${facebookLoginResult.accessToken.token}");
-                                      print(user.phoneNumber);
-                                      print(user.email);
+                        user=( await FirebaseAuth.instance.signInWithCredential(credential)).user;
 
 
-                                      // ignore: missing_return
-                                    }
-                                  }
+
+                        final DocumentSnapshot doc =
+                        await Firestore.instance.collection(constants.usercollection).document(user.uid).get();
+                        if(!doc.exists) {
+                          store.adduserfacebook(User(
+                              user.displayName, null, user.uid),
+                              user.uid);
+                        }
+                        if(user!=null){
+                          Navigator.pushNamed(context, waitngWidget.id);
+                        }else{
+                          print("error");
+                        }
+
+                      },),
+                        SizedBox(height: height*0.01,),
+                        Builder(
+                          builder: (context)=> GestureDetector(
+                            onTap: () async {
+                              final GoogleSignIn googleSignIn = GoogleSignIn();
+                              final GoogleSignInAccount googleSignInAccount = await googleSignIn.signIn();
+                              final GoogleSignInAuthentication googleSignInAuthentication =
+                              await googleSignInAccount.authentication;
+
+                              final AuthCredential credential = GoogleAuthProvider.getCredential(
+                                accessToken: googleSignInAuthentication.accessToken,
+                                idToken: googleSignInAuthentication.idToken,
+                              );
+
+                              final AuthResult authResult = await auth1.signInWithCredential(credential);
+                              final FirebaseUser user = authResult.user;
+                              assert(!user.isAnonymous);
+                              assert(await user.getIdToken() != null);
+
+                              final FirebaseUser currentUser = await auth1.currentUser();
+                              if(currentUser !=null){
+                                Store store = Store();
+                                final DocumentSnapshot doc =
+                                await Firestore.instance.collection(constants.usercollection).document(user.uid).get();
+                                if(!doc.exists) {
+                                  store.adduserfacebook(User(
+                                      user.displayName, null, user.uid),
+                                      user.uid);
                                 }
+                                Navigator.pushNamed(context, home.id);
+                              }
 
-                                ,
-                                child: Container(
-                                    width: width * 0.4,
-                                    height: height * 0.07,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(10),
-                                      color: constants.facebookcolor,
-                                    ),
-                                    child: Center(
-                                      child: customText(
-                                        text: "Facebook",
-                                        size: 16,
-                                        textcolor: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    )),
-                              ),
-                              Builder(
-                                builder: (context)=> GestureDetector(
-                                  onTap: () async {
-                                    final GoogleSignIn googleSignIn = GoogleSignIn();
-                                    final GoogleSignInAccount googleSignInAccount = await googleSignIn.signIn();
-                                    final GoogleSignInAuthentication googleSignInAuthentication =
-                                    await googleSignInAccount.authentication;
-
-                                    final AuthCredential credential = GoogleAuthProvider.getCredential(
-                                      accessToken: googleSignInAuthentication.accessToken,
-                                      idToken: googleSignInAuthentication.idToken,
-                                    );
-
-                                    final AuthResult authResult = await auth1.signInWithCredential(credential);
-                                    final FirebaseUser user = authResult.user;
-                                    assert(!user.isAnonymous);
-                                    assert(await user.getIdToken() != null);
-
-                                    final FirebaseUser currentUser = await auth1.currentUser();
-                                    if(currentUser !=null){
-                                      Store store = Store();
-                                      final DocumentSnapshot doc =
-                                      await Firestore.instance.collection(constants.usercollection).document(user.uid).get();
-                                      if(!doc.exists) {
-                                        store.adduserfacebook(User(
-                                            user.displayName, null, user.uid),
-                                            user.uid);
-                                      }
-                                      Navigator.pushNamed(context, home.id);
-                                    }
-
-                                  },
-                                  child: Container(
-                                      width: width * 0.4,
-                                      height: height * 0.07,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(10),
-                                        color: constants.googlecolor,
-                                      ),
-                                      child: Center(
-                                        child: customText(
-                                          text: "Google",
-                                          size: 16,
-                                          textcolor: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      )),
+                            },
+                            child: Container(
+                                       height: height*0.045,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                  color: constants.googlecolor,
                                 ),
-                              ),
-                            ],
+                                child: Center(
+                                  child: customText(
+                                    text: "Google",
+                                    size: 16,
+                                    textcolor: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                )),
                           ),
                         ),
+                        SizedBox(height: height*0.03,),
+
                         Center(
                           child: customText(
                             text: "Don't Have An Account?",
